@@ -4,19 +4,11 @@ document.addEventListener('DOMContentLoaded', () => {
 // создания переключения внутри страницы по кнопкам табам
 // создание Часов, отсчёта времени и тд.
 
-
-
-//tabs =============================================================================================================
-
-
+//#region  TABS
 
 const tabs = document.querySelectorAll('.tabheader__item');
 const tabsContent = document.querySelectorAll('.tabcontent');
 const tabsParent = document.querySelector('.tabheader__items');
-
-
-    
-
 
 function hideTabContent() {
     
@@ -52,15 +44,11 @@ tabsParent.addEventListener('click', function(event) {
         });
     }
 });
+//#endregion
 
-
-
-
-//TIMER ======TIMER==========TIMER ======TIMER===================TIMER ======TIMER========TIMER ======TIMER==========
+//#region CLOCK
 //здесь содержится пример создания таймера, осчёта.
 //так же из того что может пригодиться в часах подстановка 0 перед часом если значение часа <10
-
-
 
 const deadLine = '2022-05-11';
 
@@ -98,7 +86,6 @@ function getZero(num) {
     }
 }
 
-
 function setClock (selector , endtime) {
     const timer =  document.querySelector(selector);
     const days = timer.querySelector('#days');
@@ -107,7 +94,8 @@ function setClock (selector , endtime) {
     const seconds = timer.querySelector('#seconds');
     const timeInterval =  setInterval(updateClock, 1000);
 
-updateClock();
+    updateClock();
+
 // пишем обновление времени для часов, но вызываем его чуть раньше, чтоб обновился до начала сет интервала в сет клок
     function updateClock() {
         const t =  getTimeRemaining(endtime);
@@ -123,9 +111,9 @@ updateClock();
 
 }
 setClock('.timer', deadLine);
+//#endregion
 
-
-// MODAL======MODAL======MODAL======MODAL======MODAL======MODAL======MODAL======MODAL======MODAL======MODAL======
+//#region MODAL
 //здесь операциии с модальным окном
 //его вызов, закрытие, блокировка скрола когда модальное окно открыто
 // Закрытие модельного окна при клике за его пределами
@@ -137,13 +125,18 @@ const modal = document.querySelector('.modal');
 const modalCloseBtn = document.querySelector('[data-modal-close]');
 
 //открытие
+function openModal() {
+    modal.classList.add('show');
+    modal.classList.remove('hide');
+    // это блокировка возможности скрола во воремя вызванного модального окна
+    document.body.style.overflow = 'hidden';
+    //доработка если пользователь сам открыл а не запустилось функцией, то убираем интервал
+    clearInterval(modalTimer);
+}
+
+//обработчик события открытия
 modalTrigger.forEach(btn => {
-    btn.addEventListener('click', function() {
-        modal.classList.add('show');
-        modal.classList.remove('hide');
-        // это блокировка возможности скрола во воремя вызванного модального окна
-        document.body.style.overflow = 'hidden';
-});
+    btn.addEventListener('click', openModal);
 });
 
 //закрытие
@@ -154,29 +147,23 @@ function closeModal() {
     document.body.style.overflow = '';
 }
 
-
 // обработчик для вызова закрытия
-
 modalCloseBtn.addEventListener('click', closeModal);
-// тоже самое что и код ниже, но короче
+// тоже самое что и код сверху, но длиннее
 //modalCloseBtn.addEventListener('click', function() {
 //    closeModal();
 //});
 
-
 //закрытие при клике за пределами
-
 modal.addEventListener('click', (e) => {
     if (e.target === modal) {
         closeModal();
     }
 });
 
-
 //отлавливание клика клавиши ESC
-
-// через документ вешаем лисенер, на keydown и далее сравниваем код нажатой клавиши c их event.code keybord
-//и проверка на то есть активный класс show у модала, дабы не активировать лишний раз лисенер когда шоу закрыт
+// через документ вешаем лисенер, на действие keydown и далее сравниваем код нажатой клавиши c их event.code keybord
+//и проверка на то есть ли активный класс show у модала, дабы не активировать лишний раз лисенер когда шоу закрыт
 document.addEventListener('keydown', (e) => {
     if (e.code === 'Escape' && modal.classList.contains('show')) {
         closeModal();
@@ -184,6 +171,23 @@ document.addEventListener('keydown', (e) => {
 });
 
 // появление модельного окна со временем
+// ставим сет таймаут и задаём задержку до использования, переиспользуем имеющийся опенМодал
+const modalTimer = setTimeout(openModal, 3000);
+
+// появление модельного окна после скрола в самый низ к футеру
+// делаем через функцию, чтобы потом можно было использовать ремув евент лисенер на ней
+function showModalByScroll () {
+    // мы берём уже прокрученную часть + ту часть которую видит пользователь и сравниваем с всей высотой документа
+    //таким образом если они совпадают, то юзер просмотрел уже всю страницу и находится в её конце 
+    // иногда в конце условия надо добавлять -1   так как пиксели могут некоректно считываться
+    if (window.pageYOffset + document.documentElement.clientHeight >= document.documentElement.scrollHeight ) {
+        openModal();
+        window.removeEventListener('scroll', showModalByScroll);
+    }
+    
+}
+
+window.addEventListener('scroll', showModalByScroll);
 
 
 
@@ -196,8 +200,7 @@ document.addEventListener('keydown', (e) => {
 
 
 
-
-
+//#endregion
 
 
 
