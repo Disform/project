@@ -172,7 +172,7 @@ document.addEventListener('keydown', (e) => {
 
 // появление модельного окна со временем
 // ставим сет таймаут и задаём задержку до использования, переиспользуем имеющийся опенМодал
-const modalTimer = setTimeout(openModal, 3000);
+const modalTimer = setTimeout(openModal, 3000000);
 
 // появление модельного окна после скрола в самый низ к футеру
 // делаем через функцию, чтобы потом можно было использовать ремув евент лисенер на ней
@@ -194,12 +194,13 @@ window.addEventListener('scroll', showModalByScroll);
 
 
 class productCard {
-    constructor (src, alt, title, descr, price,parentSelector) {
+    constructor (src, alt, title, descr, price,parentSelector, ...classes) {
         this.src = src;
         this.alt = alt;
         this.title = title;
         this.descr = descr;
         this.price = price;
+        this.classes = classes;
         this.parent = document.querySelector(parentSelector);
         this.transfer = 30;
         this.changeToUAH();
@@ -212,8 +213,16 @@ class productCard {
         
         render() {
             const element = document.createElement('div');
+            // обращаемся к нашему массиву из классов, перебираем его и каждый индекс\кеи (классНейм) добавляем
+            // в лист классов этого елемента. для того чтоб так делать классес должен быть массивом
+            // и добавляем условие на случай если классов не передавали вообще
+            if (this.classes.length === 0) {
+                this.classes = 'menu__item';
+                element.classList.add(this.classes);
+            } else {
+                this.classes.forEach(className => element.classList.add(className));
+            }
             element.innerHTML = `
-                <div class="menu__item">
                     <img src=${this.src} alt=${this.alt}>
                     <h3 class="menu__item-subtitle">${this.title}</h3>
                     <div class="menu__item-descr">${this.descr}</div>
@@ -222,7 +231,6 @@ class productCard {
                         <div class="menu__item-cost">Цена:</div>
                         <div class="menu__item-total"><span>${this.price}</span> грн/день</div>
                     </div>
-                </div>
             `;
             this.parent.append(element);
     }
@@ -243,7 +251,7 @@ new productCard(
     "img/tabs/post.jpg",
     "post",
     'Меню "Постное"',
-    'Меню “Постное” - это тщательный подбор ингредиентов: полное отсутствие продуктов животного происхождения, молоко из миндаля, овса, кокоса или гречки, правильное количество белков за счет тофу и импортных вегетарианских стейков.',
+    'В меню “Премиум” мы используем не только красивый дизайн упаковки, но и качественное исполнение блюд. Красная рыба, морепродукты, фрукты - ресторанное меню без похода в ресторан!',
     14,
     ".menu .container"
 ).render();
@@ -252,10 +260,147 @@ new productCard(
     "img/tabs/elite.jpg",
     "elite",
     'Меню “Премиум”',
-    'В меню “Премиум” мы используем не только красивый дизайн упаковки, но и качественное исполнение блюд. Красная рыба, морепродукты, фрукты - ресторанное меню без похода в ресторан!',
+    'Меню “Постное” - это тщательный подбор ингредиентов: полное отсутствие продуктов животного происхождения, молоко из миндаля, овса, кокоса или гречки, правильное количество белков за счет тофу и импортных вегетарианских стейков.',
     21,
     ".menu .container"
-).render().addClass();
+).render();
+//#endregion
+
+//#region  Реквесты и Формы Forms
+
+//получаем все формы по тэгу form  она же <form></form>
+const form = document.querySelectorAll('form');
+const message = {
+    loading: 'загрузка',
+    success: 'успех',
+    fail: 'ошибка',
+
+};
+
+//привязываем созданную ниже функцию пост дата к каждой из форм
+form.forEach(item => {
+    postData(item);
+});
+
+// закоментированный для FormData а расскоментированны будет для JSON
+// создаём функцию отправки формы
+// function postData(form) {
+//     //ставим на форму лисенер который срабатывает при Подтверждении - обычно висит на кнопке рядом с полем
+//     form.addEventListener('submit', (event) => {
+//         event.preventDefault();
+//         // отменяем базовое поведение
+
+//         //для отображение пользователю статуса процедуры
+//         // создаём статус ессадж и создаём новый див
+//         const statusMessage = document.createElement('div');
+//         // добавляем этому диву класс статус
+//         statusMessage.classList.add('status');
+//         //создаём ему текст контент и вставляем в него содержимое ключа loading в обьекте message
+//         statusMessage.textContent = message.loading;
+//         // указываем куда в DOM его надо поместить
+//         form.append(statusMessage);
+
+//         // создаём переменную реквест и записываем в неё новый XML запрос
+//         const request = new XMLHttpRequest();
+//         // открываем этот запрос - образно указываем что мы запрашиваем
+//         // в данном случаем это POST, может быть GET
+//         // Указываем куда мы посылаем этот запрос - наш сервер
+//         request.open('POST', 'server.php');
+
+//         //выставляем запросу заголовок, в котором мы говорим серверу о том, что именно будет к нему приходить
+//         // в пером значении указываем что это какой-то контент
+//         // во втором - какой способ передачи данных будет использован для передачи
+//         //request.setRequestHeader('Content-type','multipart/form-data');
+//          // если мы форм дата отправляем через XML реквест, то делать сетреквестхедер не надо он подставляется авто
+
+
+//         // создаём переменную в которую помещаем FormData - это тип передачи данных который мы используем
+//         const formData = new FormData(form); //для отправки через форм у тегов обязательно должен быть указан name
+
+//         // отправляем наш обьет
+//         request.send(formData);
+
+//         // вызываем лисенер
+//         //говорим что мы будем отслеживать 'load' тоесть конечную загрузку
+//         request.addEventListener('load', () =>{
+//             if (request.status === 200) {
+//                 console.log(request.response);
+//                 // обращаемся к текст контенту внутри статус меседжа, и передаём ему ключь из обьекта мессадж
+//                 statusMessage.textContent = message.success;
+                
+//                 //очистка input после успешной отправки
+//                 form.reset();
+//                 //Удаление через время статуса лоадинг/ошибка/успех выводимого пользователю 
+//                 setTimeout(() => {
+//                     statusMessage.remove();
+//                 }, 2000);
+//             } else {
+//                 statusMessage.textContent = message.fail;
+//             }
+//         });
+//     });
+// }
+function postData(form) {
+    
+    form.addEventListener('submit', (event) => {
+        event.preventDefault();
+
+        const statusMessage = document.createElement('div');
+        statusMessage.classList.add('status');
+        statusMessage.textContent = message.loading;
+        form.append(statusMessage);
+
+        const request = new XMLHttpRequest();
+
+        request.open('POST', 'server.php');
+        // добавляем реквест с форматом для jsona
+        request.setRequestHeader('Content-type','application/json');
+
+        const formData = new FormData(form);
+        //форм дату нельзя просто перегнать в формат json
+        // для этого понадобится такой приём
+        //создаём обьект, берём форм дату, и перебираем его, устанавливая каждое из его велью, как ключь в нашем обьекте
+        const obj = {};
+        formData.forEach(function (value, key) {
+            obj[key] = value;
+        });
+        //после чего создаём json и перерабатываем обьект в формат jsona
+        const json = JSON.stringify(obj);
+
+        request.send(json);
+
+        request.addEventListener('load', () =>{
+            if (request.status === 200) {
+                console.log(request.response);
+                statusMessage.textContent = message.success;
+                form.reset();
+                setTimeout(() => {
+                    statusMessage.remove();
+                }, 2000);
+            } else {
+                statusMessage.textContent = message.fail;
+            }
+        });
+    });
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
