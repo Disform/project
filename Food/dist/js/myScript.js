@@ -122,7 +122,6 @@ setClock('.timer', deadLine);
 
 const modalTrigger = document.querySelectorAll('[data-modal]');
 const modal = document.querySelector('.modal');
-const modalCloseBtn = document.querySelector('[data-modal-close]');
 
 //открытие
 function openModal() {
@@ -147,16 +146,11 @@ function closeModal() {
     document.body.style.overflow = '';
 }
 
-// обработчик для вызова закрытия
-modalCloseBtn.addEventListener('click', closeModal);
-// тоже самое что и код сверху, но длиннее
-//modalCloseBtn.addEventListener('click', function() {
-//    closeModal();
-//});
-
 //закрытие при клике за пределами
 modal.addEventListener('click', (e) => {
-    if (e.target === modal) {
+    //добавили в условие, чтоб срабатывало в случае если это === модал и цель имеет атрибут дата-клосе
+    //и уточняем что он должен быть равен пустой строке
+    if (e.target === modal || e.target.getAttribute('data-modal-close') == "") { 
         closeModal();
     }
 });
@@ -271,9 +265,9 @@ new productCard(
 //получаем все формы по тэгу form  она же <form></form>
 const form = document.querySelectorAll('form');
 const message = {
-    loading: 'загрузка',
-    success: 'успех',
-    fail: 'ошибка',
+    loading: 'img/form/spinner.svg',
+    success: 'Спасибо! Скоро мы с вами свяжемся',
+    fail: 'Что-то пошло не так...'
 
 };
 
@@ -345,17 +339,18 @@ function postData(form) {
     form.addEventListener('submit', (event) => {
         event.preventDefault();
 
-        const statusMessage = document.createElement('div');
-        statusMessage.classList.add('status');
-        statusMessage.textContent = message.loading;
-        form.append(statusMessage);
+        let statusMessage = document.createElement('img');
+        statusMessage.src = message.loading;
+        statusMessage.style.cssText = `
+                display: block;
+                margin: 0 auto;
+            `;
+            form.insertAdjacentElement('afterend', statusMessage);
 
         const request = new XMLHttpRequest();
-
         request.open('POST', 'server.php');
         // добавляем реквест с форматом для jsona
         request.setRequestHeader('Content-type','application/json');
-
         const formData = new FormData(form);
         //форм дату нельзя просто перегнать в формат json
         // для этого понадобится такой приём
@@ -372,17 +367,47 @@ function postData(form) {
         request.addEventListener('load', () =>{
             if (request.status === 200) {
                 console.log(request.response);
-                statusMessage.textContent = message.success;
+                showThanksModal(message.success);
+                statusMessage.remove();
                 form.reset();
-                setTimeout(() => {
-                    statusMessage.remove();
-                }, 2000);
             } else {
-                statusMessage.textContent = message.fail;
+                showThanksModal(message.fail);
             }
         });
     });
 }
+    // вызов подального окна с благодартностью
+    // создаём функцию в которую аргументом передаём мессаге из нашего обьекта
+    function showThanksModal(message) {
+    const prevModalDialog = document.querySelector('.modal__dialog');
+    // добавляем ищначальному модалу класс hide
+    prevModalDialog.classList.add('hide');
+    //вызываем функцию опен модал
+    openModal();
+    // создаём непосредственно сам див нашего второго модельного окна
+    const thanksModal = document.createElement('div');
+    //добавляем ему класс аналогичный с первым модельным окном
+    thanksModal.classList.add('modal__dialog');
+    thanksModal.innerHTML = `
+        <div class="modal__content">
+            <div class="modal__close" data-modal-close>×</div>
+            <div class="modal__title">${message}</div>
+        </div> 
+        `;
+
+    //выгружаем его теперь на hmtl страницу, делаем это без переменной, так как не пларинуем реюз
+    // выбираем в кого будет помещён наш код через селектор класса, дальше делаем аппенд и указываем наш код
+    document.querySelector('.modal').append(thanksModal);
+    // удаление нашей модалки через время
+    setTimeout(() => {
+        thanksModal.remove();
+        // после чего меняем наш шоу на хайд у нашей модалки
+        prevModalDialog.classList.add('show');
+        prevModalDialog.classList.remove('hide');
+        //закрываем нашу модалку
+        closeModal();
+    }, 400000000);
+    }
 
 
 
